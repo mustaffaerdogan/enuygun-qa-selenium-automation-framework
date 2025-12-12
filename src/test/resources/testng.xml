@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="QA Selenium Automation Test Suite" verbose="1">
+    
+    <!-- Suite level parameters -->
+    <parameter name="browser" value="chrome"/>
+    
+    <!-- Listeners -->
+    <listeners>
+        <listener class-name="com.mustafa.listeners.TestListener"/>
+    </listeners>
+    
+    <!-- =====================================================
+         SMOKE TEST SUITE - Kritik ve hızlı testler
+         Kullanım: Her deploy sonrası, CI/CD'de her commit
+         Süre: ~1-2 dakika
+         ===================================================== -->
+    <test name="Smoke Tests" enabled="true">
+        <classes>
+            <!-- Login: En temel senaryo -->
+            <class name="com.mustafa.tests.LoginTest">
+                <methods>
+                    <include name="testValidLogin"/>
+                </methods>
+            </class>
+            
+            <!-- Products: Sayfa görüntüleme ve sepete ekleme -->
+            <class name="com.mustafa.tests.ProductsTest">
+                <methods>
+                    <include name="testProductsPageDisplay"/>
+                    <include name="testAddProductToCart"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- =====================================================
+         LOGIN TEST SUITE - Tüm login senaryoları
+         Kullanım: Login modülü değiştiğinde
+         Süre: ~2-3 dakika
+         ===================================================== -->
+    <test name="Login Test Suite" enabled="false">
+        <classes>
+            <class name="com.mustafa.tests.LoginTest"/>
+        </classes>
+    </test>
+    
+    <!-- =====================================================
+         PRODUCTS TEST SUITE - Tüm ürün senaryoları
+         Kullanım: Product modülü değiştiğinde
+         Süre: ~2-3 dakika
+         ===================================================== -->
+    <test name="Products Test Suite" enabled="false">
+        <classes>
+            <class name="com.mustafa.tests.ProductsTest"/>
+        </classes>
+    </test>
+    
+    <!-- =====================================================
+         REGRESSION TEST SUITE - TÜM TESTLER
+         Kullanım: Release öncesi, gece build'leri
+         Süre: ~5-10 dakika
+         ===================================================== -->
+    <test name="Regression Tests" enabled="false">
+        <packages>
+            <package name="com.mustafa.tests.*"/>
+        </packages>
+    </test>
+    
+    <!-- =====================================================
+         PARALLEL EXECUTION - Hızlı çalıştırma
+         Kullanım: Regression'ı hızlandırmak için
+         Not: parallel="methods" veya parallel="classes"
+         ===================================================== -->
+    <test name="Parallel Regression" enabled="false" parallel="classes" thread-count="3">
+        <packages>
+            <package name="com.mustafa.tests.*"/>
+        </packages>
+    </test>
+    
+</suite>

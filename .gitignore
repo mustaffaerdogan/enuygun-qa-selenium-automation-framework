@@ -1,0 +1,139 @@
+# ==========================================
+# QA Selenium Automation Framework
+# .gitignore
+# ==========================================
+
+# Compiled class files
+*.class
+target/
+bin/
+
+# Log files
+*.log
+logs/
+target/logs/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+
+# Eclipse
+.metadata
+.settings/
+.classpath
+.project
+.apt_generated
+.apt_generated_tests
+.factorypath
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# Test outputs
+test-output/
+target/test-output/
+target/surefire-reports/
+target/failsafe-reports/
+
+# Screenshots
+screenshots/
+target/screenshots/
+
+# Allure
+allure-results/
+target/allure-results/
+allure-report/
+target/allure-report/
+.allure/
+
+# Extent Reports
+extent-reports/
+target/extent-reports/
+
+# Selenium
+chromedriver
+geckodriver
+edgedriver
+*.exe
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+
+# Node (if using any JS tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+
+# Excel test data (if contains sensitive info)
+# Uncomment if needed
+# *.xlsx
+# *.xls
+
+# Backup files
+*.bak
+*.backup
+
