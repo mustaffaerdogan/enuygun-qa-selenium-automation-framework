@@ -10,8 +10,8 @@ import org.openqa.selenium.WebDriver;
  */
 public class HomePage extends BasePage {
     
-    // Locators - İleride eklenecek
-    private final By cookieAcceptButton = By.id("CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll");
+    // Locators
+    private final By cookieAcceptButton = By.id("onetrust-accept-btn-handler");
     
     public HomePage(WebDriver driver) {
         super(driver);
@@ -28,13 +28,15 @@ public class HomePage extends BasePage {
     
     /**
      * Cookie kabul et (varsa)
+     * OneTrust cookie consent dialog'ındaki "KABUL ET" butonuna tıklar
      */
     @Step("Accept cookies if present")
     public HomePage acceptCookies() {
         try {
             if (isElementVisible(cookieAcceptButton)) {
                 click(cookieAcceptButton);
-                logger.info("Cookies accepted");
+                logger.info("Cookies accepted via OneTrust dialog");
+                Thread.sleep(1000); // Cookie dialog'un kapanması için kısa bir bekleme
             }
         } catch (Exception e) {
             logger.info("Cookie dialog not found or already accepted");
