@@ -1,20 +1,76 @@
-# 🚀 QA Selenium Automation Framework
+# 🚀 Enuygun.com Test Automation Framework
 
-Modern ve profesyonel bir Selenium test otomasyon framework'ü. Page Object Model (POM) design pattern kullanılarak geliştirilmiştir.
+Enuygun.com için geliştirilmiş Selenium WebDriver tabanlı test otomasyon framework'ü. Page Object Model (POM) design pattern kullanılarak geliştirilmiştir.
 
 ---
 
 ## 📋 İçindekiler
 
+- [Test Case'leri](#-test-caseleri)
 - [Özellikler](#-özellikler)
 - [Teknolojiler](#-teknolojiler)
 - [Proje Yapısı](#-proje-yapısı)
 - [Kurulum](#-kurulum)
-- [Konfigürasyon](#-konfigürasyon)
 - [Test Çalıştırma](#-test-çalıştırma)
 - [Raporlama](#-raporlama)
-- [Test Yazma Rehberi](#-test-yazma-rehberi)
 - [Best Practices](#-best-practices)
+
+---
+
+## 🎯 Test Case'leri
+
+Bu projede Enuygun.com için 4 ana test case bulunmaktadır:
+
+### Case 1: Basic Flight Search and Time Filter 🔍
+**Test Sınıfı:** `FlightSearchTest.java`  
+**Açıklama:** Temel uçuş arama ve zaman filtresi testi
+
+**Test Adımları:**
+- Enuygun.com ana sayfasına git
+- Uçuş arama formunu doldur (kalkış-varış, tarih)
+- Uçuş ara
+- Zaman filtrelerini uygula
+- Sonuçları doğrula
+
+---
+
+### Case 2: Price Sorting for Turkish Airlines 💰
+**Test Sınıfı:** `PriceSortingTest.java`  
+**Açıklama:** Turkish Airlines için fiyat sıralama testi
+
+**Test Adımları:**
+- Enuygun.com ana sayfasına git
+- Uçuş ara
+- Turkish Airlines filtresi uygula
+- Fiyata göre sırala (artan/azalan)
+- Sıralamanın doğru çalıştığını doğrula
+
+---
+
+### Case 3: Critical Path Testing 🛤️
+**Test Sınıfı:** `CriticalPathTest.java`  
+**Açıklama:** Kritik kullanıcı yolu end-to-end testi
+
+**Test Adımları:**
+- Enuygun.com ana sayfasına git
+- Uçuş ara
+- Uçuş seç
+- Yolcu bilgilerini doldur
+- Ödeme adımına kadar ilerle
+- Kritik yolun tamamını doğrula
+
+---
+
+### Case 4: Data Extraction and Analysis 📊
+**Test Sınıfı:** `DataExtractionTest.java`  
+**Açıklama:** Uçuş verilerini çıkarma ve analiz testi
+
+**Test Adımları:**
+- Enuygun.com ana sayfasına git
+- Uçuş ara
+- Sonuç sayfasından verileri çıkar (fiyat, zaman, havayolu)
+- Verileri analiz et ve raporla
+- Log ve screenshot ile kaydet
 
 ---
 
@@ -73,11 +129,13 @@ qa-selenium-automation-framework/
 │   │   │       │   └── DriverManager.java
 │   │   │       ├── listeners/         # TestNG listeners
 │   │   │       │   ├── TestListener.java
-│   │   │       │   ├── AllureListener.java
 │   │   │       │   └── RetryListener.java
 │   │   │       ├── pages/             # Page Objects
-│   │   │       │   ├── LoginPage.java
-│   │   │       │   └── ProductsPage.java
+│   │   │       │   └── HomePage.java  # Enuygun.com ana sayfa
+│   │   │       ├── exceptions/        # Custom exceptions
+│   │   │       │   ├── FrameworkException.java
+│   │   │       │   ├── ConfigurationException.java
+│   │   │       │   └── ElementNotFoundException.java
 │   │   │       └── utils/             # Yardımcı sınıflar
 │   │   │           ├── WaitHelper.java
 │   │   │           ├── ElementHelper.java
@@ -96,11 +154,14 @@ qa-selenium-automation-framework/
 │       │       ├── base/
 │       │       │   └── BaseTest.java # Base test sınıfı
 │       │       └── tests/            # Test sınıfları
-│       │           ├── LoginTest.java
-│       │           └── ProductsTest.java
+│       │           ├── FlightSearchTest.java      # Case 1
+│       │           ├── PriceSortingTest.java      # Case 2
+│       │           ├── CriticalPathTest.java      # Case 3
+│       │           └── DataExtractionTest.java    # Case 4
 │       │
 │       └── resources/
-│           └── testng.xml            # TestNG suite
+│           ├── testng.xml            # TestNG suite
+│           └── testdata/             # Test verileri
 │
 ├── target/                           # Build çıktıları
 │   ├── allure-results/              # Allure sonuçları
@@ -109,7 +170,7 @@ qa-selenium-automation-framework/
 │
 ├── .gitignore                       # Git ignore
 ├── pom.xml                          # Maven dependencies
-└── README.md                        # Bu dosya
+├── README.md                        # Bu dosya
 ```
 
 ---
@@ -150,7 +211,7 @@ Ana konfigürasyon dosyası: `src/main/resources/config.properties`
 
 ```properties
 # Test URL
-base.url=https://www.saucedemo.com
+base.url=https://www.enuygun.com
 
 # Browser
 browser=chrome          # chrome, firefox, edge
@@ -170,36 +231,30 @@ screenshot.path=target/screenshots
 
 Test suite konfigürasyonu: `src/test/resources/testng.xml`
 
+**Tüm testleri çalıştır (varsayılan):**
 ```xml
-<suite name="QA Selenium Automation Test Suite">
-    <parameter name="browser" value="chrome"/>
-    <test name="Smoke Tests">
-        <classes>
-            <class name="com.mustafa.tests.LoginTest"/>
-        </classes>
-    </test>
-</suite>
+<test name="Enuygun All Tests" enabled="true">
+    <classes>
+        <class name="com.mustafa.tests.FlightSearchTest"/>
+        <class name="com.mustafa.tests.PriceSortingTest"/>
+        <class name="com.mustafa.tests.CriticalPathTest"/>
+        <class name="com.mustafa.tests.DataExtractionTest"/>
+    </classes>
+</test>
 ```
+
+**Tek bir test çalıştır:**
+Her test case'in `enabled="false"` olan kendi suite'i vardır. İstediğiniz test'i çalıştırmak için ilgili suite'i `enabled="true"` yapın.
 
 ---
 
 ## 🎯 Test Çalıştırma
 
-### Maven ile
+### Tüm Testleri Çalıştır
 
-**Tüm testleri çalıştır:**
+**Maven ile (4 test case birlikte):**
 ```bash
 mvn clean test
-```
-
-**Belirli bir test sınıfı:**
-```bash
-mvn test -Dtest=LoginTest
-```
-
-**Belirli bir test metodu:**
-```bash
-mvn test -Dtest=LoginTest#testValidLogin
 ```
 
 **TestNG XML ile:**
@@ -207,21 +262,58 @@ mvn test -Dtest=LoginTest#testValidLogin
 mvn test -DsuiteXmlFile=testng.xml
 ```
 
-**Farklı browser ile:**
+### Tek Bir Test Case Çalıştır
+
+**Case 1 - Flight Search:**
 ```bash
-mvn test -Dbrowser=firefox
+mvn test -Dtest=FlightSearchTest
 ```
 
-**Headless mode:**
+**Case 2 - Price Sorting:**
+```bash
+mvn test -Dtest=PriceSortingTest
+```
+
+**Case 3 - Critical Path:**
+```bash
+mvn test -Dtest=CriticalPathTest
+```
+
+**Case 4 - Data Extraction:**
+```bash
+mvn test -Dtest=DataExtractionTest
+```
+
+### Farklı Browser ile Çalıştır
+
+```bash
+mvn test -Dbrowser=firefox
+mvn test -Dbrowser=edge
+```
+
+### Headless Mode
+
 ```bash
 mvn test -Dheadless=true
 ```
 
-### IDE'den
+### IDE'den Çalıştırma
 
-1. **Tek test çalıştırma:** Test metoduna sağ tıklayın > Run As > TestNG Test
-2. **Test sınıfı:** Class'a sağ tıklayın > Run As > TestNG Test
-3. **Test suite:** testng.xml'e sağ tıklayın > Run As > TestNG Suite
+1. **Tüm testler:** `testng.xml` > Sağ tık > Run As > TestNG Suite
+2. **Tek test sınıfı:** Test class > Sağ tık > Run As > TestNG Test
+3. **Tek test metodu:** Test metodu > Sağ tık > Run As > TestNG Test
+
+### Parallel Execution (Hızlı Çalıştırma)
+
+`testng.xml` içinde "Parallel Execution" suite'ini `enabled="true"` yapın:
+```xml
+<test name="Parallel Execution" enabled="true" parallel="classes" thread-count="4">
+```
+
+Sonra çalıştırın:
+```bash
+mvn clean test
+```
 
 ---
 
@@ -259,70 +351,73 @@ Log dosyaları: `target/logs/`
 
 ## 📝 Test Yazma Rehberi
 
-### 1. Page Object Oluşturma
+### Mevcut Test Case'leri Geliştirme
+
+4 test case'in boş iskeletleri hazır durumda. Her test case için adımları eklemek için:
+
+1. **Page Object'leri genişletin** (`src/main/java/com/mustafa/pages/`)
+   - `HomePage.java` - Ana sayfa elemanları
+   - Yeni page'ler ekleyin (SearchResultsPage, FlightDetailsPage, vb.)
+
+2. **Test adımlarını ekleyin** (`src/test/java/com/mustafa/tests/`)
+   - `FlightSearchTest.java` - Uçuş arama ve filtreleme
+   - `PriceSortingTest.java` - Fiyat sıralama
+   - `CriticalPathTest.java` - E2E akış
+   - `DataExtractionTest.java` - Veri çıkarma
+
+### Yeni Page Object Oluşturma
 
 ```java
 package com.mustafa.pages;
 
 import com.mustafa.base.BasePage;
+import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 
-public class MyPage extends BasePage {
+public class SearchResultsPage extends BasePage {
     
     // Locators
-    private final By usernameInput = By.id("username");
-    private final By submitButton = By.id("submit");
+    private final By flightList = By.cssSelector(".flight-list");
+    private final By priceFilter = By.id("price-filter");
     
-    // Constructor
-    public MyPage(WebDriver driver) {
+    public SearchResultsPage(WebDriver driver) {
         super(driver);
     }
     
-    // Actions
-    public MyPage enterUsername(String username) {
-        type(usernameInput, username);
+    @Step("Apply price filter")
+    public SearchResultsPage applyPriceFilter() {
+        click(priceFilter);
+        logger.info("Price filter applied");
         return this;
     }
-    
-    public void clickSubmit() {
-        click(submitButton);
-    }
 }
 ```
 
-### 2. Test Sınıfı Oluşturma
+### Test Case Geliştirme Örneği
 
 ```java
-package com.mustafa.tests;
-
-import com.mustafa.base.BaseTest;
-import com.mustafa.pages.MyPage;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-public class MyTest extends BaseTest {
+@Test
+public void testFlightSearch() {
+    logger.info("TEST: Flight Search Started");
     
-    @Test
-    public void testExample() {
-        MyPage page = new MyPage(driver);
-        page.enterUsername("testuser")
-            .clickSubmit();
-        
-        Assert.assertTrue(condition, "Message");
-    }
+    // Arrange
+    HomePage homePage = new HomePage(driver);
+    homePage.acceptCookies();
+    
+    // Act
+    SearchResultsPage resultsPage = homePage
+        .selectDeparture("Istanbul")
+        .selectArrival("Ankara")
+        .selectDate("2026-04-01")
+        .clickSearch();
+    
+    // Assert
+    Assert.assertTrue(resultsPage.isResultsDisplayed(), 
+        "Search results should be displayed");
+    
+    logger.info("TEST: Flight Search Completed");
 }
-```
-
-### 3. Test Data Üretme
-
-```java
-import com.mustafa.utils.TestDataGenerator;
-
-String email = TestDataGenerator.generateEmail();
-String username = TestDataGenerator.generateUsername();
-String password = TestDataGenerator.generatePassword();
-int randomNumber = TestDataGenerator.generateRandomNumber(1, 100);
 ```
 
 ---
@@ -390,9 +485,33 @@ rm -rf ~/.m2/repository/webdriver
 
 ## 📞 İletişim
 
-**Mustafa** - [GitHub Profile](https://github.com/mustaffaerdogan)
+**Proje:** Enuygun.com Test Automation Framework  
+**Geliştirici:** Mustafa Erdoğan
+**GitHub:** [mustaffaerdogan](https://github.com/mustaffaerdogan)
 
-Project Link: [https://github.com/mustafa/qa-selenium-automation-framework](https://github.com/mustafa/qa-selenium-automation-framework)
+---
+
+## 📈 Proje Durumu
+
+### ✅ Tamamlananlar
+- Framework altyapısı hazır
+- 4 test case iskeleti oluşturuldu
+- Base page ve test sınıfları hazır
+- TestNG konfigürasyonu tamamlandı
+- Reporting sistemi aktif (Allure)
+
+### 🚧 Devam Eden
+- Case 1: Basic Flight Search and Time Filter (TODO)
+- Case 2: Price Sorting for Turkish Airlines (TODO)
+- Case 3: Critical Path Testing (TODO)
+- Case 4: Data Extraction and Analysis (TODO)
+
+### 📝 Sonraki Adımlar
+1. HomePage locator'larını tamamla
+2. SearchResultsPage oluştur
+3. Her test case için adımları ekle
+4. Test verilerini hazırla
+5. Testleri çalıştır ve doğrula
 
 ---
 

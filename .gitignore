@@ -1,5 +1,5 @@
 # ==========================================
-# QA Selenium Automation Framework
+# Enuygun.com Test Automation Framework
 # .gitignore
 # ==========================================
 
@@ -136,4 +136,11 @@ yarn-error.log
 # Backup files
 *.bak
 *.backup
+
+# Test data with sensitive information
+# Uncomment if you have sensitive test data
+# src/test/resources/testdata/*.json
+
+# Flight data exports (Case 4 output)
+target/flight-data/
 
