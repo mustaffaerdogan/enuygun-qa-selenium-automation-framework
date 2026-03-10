@@ -1,6 +1,7 @@
 package com.mustafa.tests;
 
 import com.mustafa.base.BaseTest;
+import com.mustafa.config.ConfigReader;
 import com.mustafa.pages.HomePage;
 import io.qameta.allure.*;
 import org.testng.Assert;
@@ -21,6 +22,12 @@ public class FlightSearchTest extends BaseTest {
     public void testBasicFlightSearchAndTimeFilter() {
         logger.info("TEST: Case 1 - Basic Flight Search and Time Filter Started");
         
+        // Arrange - Get test data from config
+        String origin = ConfigReader.getProperty("flight.origin");
+        String destination = ConfigReader.getProperty("flight.destination");
+        
+        logger.info("Test Data - Origin: " + origin + ", Destination: " + destination);
+        
         // Navigate to Enuygun.com
         HomePage homePage = new HomePage(driver);
         
@@ -33,7 +40,21 @@ public class FlightSearchTest extends BaseTest {
         
         logger.info("TEST: Successfully navigated to Enuygun.com");
         
-        // TODO: Flight search and time filter steps will be added here
+        // Act - Fill flight search form
+        homePage.selectRoundTrip();
+        
+        // Verify search form is visible
+        Assert.assertTrue(homePage.isFlightSearchFormVisible(),
+            "Flight search form should be visible");
+        
+        // Enter origin and destination
+        homePage.enterOrigin(origin)
+                .enterDestination(destination);
+        
+        logger.info("TEST: Origin and destination entered successfully");
+        
+        // TODO: Date selection and search button click will be added in next step
+        // TODO: Time filter steps will be added after search results page
         
         logger.info("TEST: Case 1 - Basic Flight Search and Time Filter Completed");
     }

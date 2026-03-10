@@ -5,11 +5,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 /**
  * ConfigReader - config.properties dosyasını okur
  * Merkezi konfigürasyon yönetimi sağlar
+ * UTF-8 encoding desteği ile Türkçe karakter sorunu çözüldü
  */
 public class ConfigReader {
     
@@ -23,13 +26,14 @@ public class ConfigReader {
     }
     
     /**
-     * Properties dosyasını yükle
+     * Properties dosyasını yükle (UTF-8 encoding ile)
      */
     private static void loadProperties() {
         properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(CONFIG_FILE_PATH)) {
-            properties.load(fis);
-            logger.info("Configuration file loaded successfully: " + CONFIG_FILE_PATH);
+        try (FileInputStream fis = new FileInputStream(CONFIG_FILE_PATH);
+             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+            properties.load(isr);
+            logger.info("Configuration file loaded successfully with UTF-8 encoding: " + CONFIG_FILE_PATH);
         } catch (IOException e) {
             logger.error("Failed to load configuration file: " + CONFIG_FILE_PATH, e);
             throw new RuntimeException("Configuration file not found: " + CONFIG_FILE_PATH, e);
