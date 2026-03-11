@@ -11,10 +11,11 @@ target/
 
 # Ancak test-data ve test-reports alt klasörlerindeki CSV/HTML raporlarını
 # versiyon kontrolüne dahil etmek istiyoruz (Case 4 outputları).
+# Dizinleri ve altındaki tüm dosyaları unignore et.
 !target/test-data/
-!target/test-data/*.csv
+!target/test-data/**
 !target/test-reports/
-!target/test-reports/*.html
+!target/test-reports/**
 
 bin/
 
