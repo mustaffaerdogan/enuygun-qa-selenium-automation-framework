@@ -34,6 +34,12 @@ public class SearchResultsPage extends BasePage {
     private final By sortButtonCheapest = By.cssSelector("[data-testid='sortButtons0'], .search__filter_sort-PRICE_ASC");
     private final By flightPrices = By.cssSelector("[data-testid='flightInfoPrice']");
     
+    // Locators - Veri çıkarma için
+    private final By airlineNames = By.cssSelector(".summary-marketing-airlines");
+    private final By connectionInfo = By.cssSelector(".summary-transit");
+    private final By flightDurations = By.cssSelector("[data-testid='departureFlightTime']");
+    private final By arrivalTimes = By.cssSelector("[data-testid='arrivalTime']");
+    
     // Flight results locators
     private final By flightCards = By.cssSelector(".flight-list-body .body-row, .flight-card");
     private final By flightDepartureTimes = By.cssSelector("[data-testid='departureTime']");
@@ -778,5 +784,156 @@ public class SearchResultsPage extends BasePage {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    /**
+     * Uçuş verilerini temsil eden sınıf
+     */
+    public static class FlightData {
+        private String departureTime;
+        private String arrivalTime;
+        private String airlineName;
+        private String price;
+        private String connectionInfo;
+        private String flightDuration;
+        
+        public FlightData(String departureTime, String arrivalTime, String airlineName, 
+                         String price, String connectionInfo, String flightDuration) {
+            this.departureTime = departureTime;
+            this.arrivalTime = arrivalTime;
+            this.airlineName = airlineName;
+            this.price = price;
+            this.connectionInfo = connectionInfo;
+            this.flightDuration = flightDuration;
+        }
+        
+        public String getDepartureTime() { return departureTime; }
+        public String getArrivalTime() { return arrivalTime; }
+        public String getAirlineName() { return airlineName; }
+        public String getPrice() { return price; }
+        public String getConnectionInfo() { return connectionInfo; }
+        public String getFlightDuration() { return flightDuration; }
+        
+        public String toCsvRow() {
+            return String.format("%s,%s,%s,%s,%s,%s",
+                departureTime, arrivalTime, airlineName, price, connectionInfo, flightDuration);
+        }
+    }
+    
+    /**
+     * Tüm uçuşlardan veri çek
+     */
+    @Step("Extract flight data from all search results")
+    public java.util.List<FlightData> extractAllFlightData() {
+        java.util.List<FlightData> flightDataList = new java.util.ArrayList<>();
+        
+        try {
+            logger.info("Starting to extract flight data from search results");
+            
+            // Ekstra bekleme - sayfa tam yüklensin
+            Thread.sleep(3000);
+            
+            // Detay butonlarını bul - her buton bir uçuş kartına ait
+            By detailButtonLocator = By.cssSelector(".action-detail-btn");
+            java.util.List<WebElement> detailButtons = driver.findElements(detailButtonLocator);
+            logger.info("Found " + detailButtons.size() + " detail buttons (flights) to extract data from");
+            
+            if (detailButtons.isEmpty()) {
+                logger.warn("No flight detail buttons found on the page!");
+                return flightDataList;
+            }
+            
+            // Her detay butonunun parent elementinden (uçuş kartı) veri çek
+            for (int i = 0; i < detailButtons.size(); i++) {
+                try {
+                    // Her iterasyonda tekrar bul (DOM değişebilir)
+                    java.util.List<WebElement> currentButtons = driver.findElements(detailButtonLocator);
+                    if (i >= currentButtons.size()) {
+                        logger.warn("Button index out of bounds at " + i);
+                        break;
+                    }
+                    
+                    WebElement detailButton = currentButtons.get(i);
+                    
+                    // Butonun parent element'ini bul (uçuş kartı)
+                    // Birkaç level yukarı çık - flight-item-wrapper veya flight-item div'i
+                    WebElement flightCard = detailButton.findElement(By.xpath("./ancestor::div[contains(@class, 'flight-item')]"));
+                    
+                    // Departure time
+                    String departureTime = "N/A";
+                    java.util.List<WebElement> depTimes = flightCard.findElements(By.cssSelector("[data-testid='departureTime']"));
+                    if (!depTimes.isEmpty()) {
+                        departureTime = depTimes.get(0).getText().trim();
+                    }
+                    
+                    // Arrival time
+                    String arrivalTime = "N/A";
+                    java.util.List<WebElement> arrTimes = flightCard.findElements(By.cssSelector("[data-testid='arrivalTime']"));
+                    if (!arrTimes.isEmpty()) {
+                        arrivalTime = arrTimes.get(0).getText().trim();
+                    }
+                    
+                    // Airline name
+                    String airlineName = "N/A";
+                    java.util.List<WebElement> airlines = flightCard.findElements(By.cssSelector(".summary-marketing-airlines"));
+                    if (!airlines.isEmpty()) {
+                        airlineName = airlines.get(0).getText().trim();
+                    }
+                    
+                    // Price (data-price attribute'tan al)
+                    String price = "N/A";
+                    java.util.List<WebElement> priceElements = flightCard.findElements(By.cssSelector("[data-testid='flightInfoPrice']"));
+                    if (!priceElements.isEmpty()) {
+                        String priceData = priceElements.get(0).getAttribute("data-price");
+                        String currency = priceElements.get(0).getAttribute("data-currency");
+                        if (priceData != null && !priceData.isEmpty()) {
+                            price = priceData + " " + (currency != null ? currency : "TRY");
+                        }
+                    }
+                    
+                    // Connection info (Direkt Uçuş / 1 Aktarma vb.)
+                    String connectionInfo = "N/A";
+                    java.util.List<WebElement> connections = flightCard.findElements(By.cssSelector(".summary-transit"));
+                    if (!connections.isEmpty()) {
+                        connectionInfo = connections.get(0).getText().trim();
+                    }
+                    
+                    // Flight duration
+                    String flightDuration = "N/A";
+                    java.util.List<WebElement> durations = flightCard.findElements(By.cssSelector("[data-testid='departureFlightTime']"));
+                    if (!durations.isEmpty()) {
+                        flightDuration = durations.get(0).getText().trim();
+                    }
+                    
+                    // FlightData objesi oluştur ve listeye ekle
+                    FlightData flightData = new FlightData(
+                        departureTime, arrivalTime, airlineName, 
+                        price, connectionInfo, flightDuration
+                    );
+                    
+                    flightDataList.add(flightData);
+                    
+                    logger.info("Flight " + (i + 1) + ": " + 
+                               airlineName + " | " + 
+                               departureTime + " - " + arrivalTime + " | " + 
+                               price + " | " + 
+                               connectionInfo + " | " + 
+                               flightDuration);
+                    
+                } catch (Exception e) {
+                    logger.warn("Error extracting data from flight " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+            
+            logger.info("=== DATA EXTRACTION SUMMARY ===");
+            logger.info("Total flights found: " + detailButtons.size());
+            logger.info("Successfully extracted: " + flightDataList.size());
+            
+        } catch (Exception e) {
+            logger.error("Error extracting flight data: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return flightDataList;
     }
 }
