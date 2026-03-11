@@ -83,18 +83,22 @@ Bu projede Enuygun.com için 4 ana test case geliştirilmiştir. Tüm test case'
 
 ### Case 3: Critical Path Testing
 **Test Sınıfı:** `CriticalPathTest.java`  
-**Durum:** Hazır (gelecek geliştirme için)  
+**Durum:** Tamamlandı  
 **Öncelik:** BLOCKER  
-**Açıklama:** E2E kritik kullanıcı yolu testi (arama → seçim → ödeme)
+**Açıklama:** Gidiş–dönüş kritik kullanıcı yolunu, paket seçimleri ve rezervasyon sayfası doğrulamaları ile birlikte end-to-end test eder.
 
-**Planlanan Test Adımları:**
-- Enuygun.com ana sayfasına git
-- Uçuş ara
-- Sonuçlardan bir uçuş seç
-- Yolcu bilgilerini doldur
-- İletişim bilgilerini gir
-- Ödeme sayfasına kadar ilerle
-- Kritik yolun tamamını doğrula
+**Test Adımları:**
+1. Enuygun.com ana sayfasına git ve çerezleri kabul et
+2. Gidiş-dönüş (round trip) seçeneğini seç
+3. Config'ten okunan `critical.path.origin/destination` ve tarih bilgileri ile arama yap
+4. Arama sonuçları sayfasının yüklendiğini doğrula
+5. İlk gidiş uçuşu için detayları aç ve uçuş bilgisini oku (havayolu, uçuş no, kalkış/varış saati, sınıf, süre, fiyat)
+6. Gidiş uçuşu için \"Seç\" butonuna tıkla ve BASIC paketini seç, onayla
+7. Dönüş uçuşu listesinden ilk dönüş uçuşunun detaylarını aç ve uçuş bilgisini oku
+8. Dönüş uçuşu için \"Seç\" butonuna tıkla ve BASIC paketini seç (otomatik olarak rezervasyon sayfasına yönlenir)
+9. Rezervasyon sayfasının yüklendiğini doğrula
+10. Rezervasyon sayfasındaki gidiş ve dönüş uçuşu kartlarının, seçilen uçuşların kalkış/varış saatleri ile eşleştiğini doğrula
+11. Rezervasyon sayfasında BASIC/BASIC paket kombinasyonunun doğru görüntülendiğini kontrol et
 
 ---
 
@@ -734,6 +738,12 @@ rm -rf ~/.m2/repository/webdriver
   - Fiyat sıralaması validation
   - Havayolu doğrulama (tüm uçuşlar TK)
   
+- **Case 3: CriticalPathTest** - TAMAMLANDI
+  - Gidiş–dönüş kritik kullanıcı yolu (search → select → reservation)
+  - Gidiş ve dönüş için uçuş/paket seçimi (BASIC/BASIC)
+  - Rezervasyon sayfasında gidiş/dönüş saatlerinin doğrulanması
+  - Paket bilgilerinin (BASIC/BASIC) kontrolü
+  
 - **Case 4: DataExtractionTest** - TAMAMLANDI
   - CSV data export (UTF-8 BOM)
   - Statistical analysis (min/max/avg by airline)
@@ -752,30 +762,21 @@ rm -rf ~/.m2/repository/webdriver
 
 ---
 
-### Devam Eden
-
-- **Case 3: CriticalPathTest** - Hazır iskelet (gelecek geliştirme)
-  - E2E user journey (search → select → payment)
-  - Passenger information form
-  - Payment page navigation
-
----
-
 ### Test Coverage
 
 | Test Case | Durum | Öncelik | Test Adımları | Assertions |
 |-----------|-------|---------|---------------|------------|
 | Case 1 | Tamamlandı | BLOCKER | 13 adım | 6+ assertion |
 | Case 2 | Tamamlandı | CRITICAL | 10 adım | 4+ assertion |
-| Case 3 | Hazır | BLOCKER | - | - |
+| Case 3 | Tamamlandı | BLOCKER | 11 adım | 4+ assertion |
 | Case 4 | Tamamlandı | NORMAL | 8 adım | 3+ assertion |
 
 **Toplam:**
-- Test Case'leri: 4 (3 aktif, 1 hazır)
-- Test Metodları: 3
-- Page Objects: 2
+- Test Case'leri: 4 (4 aktif, 0 beklemede)
+- Test Metodları: 4
+- Page Objects: 3
 - Toplam Kod Satırı: ~2000+
-- Test Coverage: %75 tamamlandı
+- Test Coverage: %100'e yakın (tüm ana akışlar kapsanıyor)
 
 ---
 

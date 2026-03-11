@@ -5,7 +5,17 @@
 
 # Compiled class files
 *.class
+
+# Maven target klasörü (genel olarak ignore)
 target/
+
+# Ancak test-data ve test-reports alt klasörlerindeki CSV/HTML raporlarını
+# versiyon kontrolüne dahil etmek istiyoruz (Case 4 outputları).
+!target/test-data/
+!target/test-data/*.csv
+!target/test-reports/
+!target/test-reports/*.html
+
 bin/
 
 # Log files

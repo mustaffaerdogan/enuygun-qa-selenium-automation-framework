@@ -936,4 +936,342 @@ public class SearchResultsPage extends BasePage {
         
         return flightDataList;
     }
+    
+    /**
+     * Dönüş uçuşu listesinden belirli bir index'teki uçuşun detay butonuna tıkla
+     */
+    @Step("Expand return flight details for flight at index {flightIndex}")
+    public SearchResultsPage expandReturnFlightDetails(int flightIndex) {
+        try {
+            logger.info("Expanding return flight details for flight at index: " + flightIndex);
+            
+            // Dönüş uçuşları container'ını bul
+            WebElement returnFlightList = driver.findElement(By.cssSelector(".flight-list-return"));
+            
+            // Bu container içindeki detay butonlarını bul
+            java.util.List<WebElement> detailButtons = returnFlightList.findElements(By.cssSelector(".action-detail-btn"));
+            
+            if (flightIndex >= detailButtons.size()) {
+                logger.error("Return flight index " + flightIndex + " is out of bounds. Total return flights: " + detailButtons.size());
+                return this;
+            }
+            
+            WebElement detailButton = detailButtons.get(flightIndex);
+            scrollToElement(By.cssSelector(".flight-list-return"));
+            Thread.sleep(500);
+            
+            detailButton.click();
+            Thread.sleep(1000); // Detayların açılmasını bekle
+            
+            logger.info("Return flight details expanded successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error expanding return flight details: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Dönüş uçuşu bilgilerini oku
+     */
+    @Step("Get return flight info for flight at index {flightIndex}")
+    public FlightInfo getReturnFlightInfo(int flightIndex) {
+        try {
+            logger.info("Getting return flight info for index: " + flightIndex);
+            
+            // Dönüş uçuşları container'ını bul
+            WebElement returnFlightList = driver.findElement(By.cssSelector(".flight-list-return"));
+            
+            // Bu container içindeki uçuş kartlarını bul
+            java.util.List<WebElement> flightCards = returnFlightList.findElements(By.cssSelector(".flight-item"));
+            
+            if (flightIndex >= flightCards.size()) {
+                logger.error("Return flight index out of bounds");
+                return null;
+            }
+            
+            WebElement flightCard = flightCards.get(flightIndex);
+            
+            // Basic bilgileri al
+            String airline = flightCard.findElements(By.cssSelector(".summary-marketing-airlines")).get(0).getText().trim();
+            String departureTime = flightCard.findElements(By.cssSelector("[data-testid='departureTime']")).get(0).getText().trim();
+            String arrivalTime = flightCard.findElements(By.cssSelector("[data-testid='arrivalTime']")).get(0).getText().trim();
+            String duration = flightCard.findElements(By.cssSelector("[data-testid='returnFlightTime']")).get(0).getText().trim();
+            String price = flightCard.findElements(By.cssSelector("[data-testid='flightInfoPrice']")).get(0).getAttribute("data-price");
+            
+            // Detayları aç ve segment bilgilerini al
+            expandReturnFlightDetails(flightIndex);
+            Thread.sleep(1000);
+            
+            // Segment detaylarını al
+            WebElement flightDetailWrapper = flightCard.findElement(By.cssSelector(".flight-detail-wrapper"));
+            String flightNumber = flightDetailWrapper.findElement(By.cssSelector("[data-testid='flightNumber']")).getText().trim();
+            String flightClass = flightDetailWrapper.findElement(By.cssSelector("[data-testid='flightClass']")).getText().trim();
+            
+            FlightInfo info = new FlightInfo(airline, departureTime, arrivalTime, duration, price, flightNumber, flightClass);
+            logger.info("Return flight info: " + airline + " - " + flightNumber + " (" + departureTime + " - " + arrivalTime + ")");
+            
+            return info;
+            
+        } catch (Exception e) {
+            logger.error("Error getting return flight info: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * Dönüş uçuşunun "Seç" butonuna tıkla
+     */
+    @Step("Click select button for return flight at index {flightIndex}")
+    public SearchResultsPage clickSelectReturnFlight(int flightIndex) {
+        try {
+            logger.info("Clicking select button for return flight at index: " + flightIndex);
+            
+            // Dönüş uçuşları container'ını bul
+            WebElement returnFlightList = driver.findElement(By.cssSelector(".flight-list-return"));
+            
+            // Bu container içindeki seç butonlarını bul
+            java.util.List<WebElement> selectButtons = returnFlightList.findElements(By.cssSelector(".action-select-btn"));
+            
+            if (flightIndex >= selectButtons.size()) {
+                logger.error("Return flight index out of bounds");
+                return this;
+            }
+            
+            WebElement selectButton = selectButtons.get(flightIndex);
+            scrollToElement(By.cssSelector(".flight-list-return"));
+            Thread.sleep(500);
+            
+            selectButton.click();
+            Thread.sleep(2000); // Paket seçim modalının açılmasını bekle
+            
+            logger.info("Return flight select button clicked - Package selection modal should be visible");
+            
+        } catch (Exception e) {
+            logger.error("Error clicking return flight select button: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Belirli bir index'teki uçuşun detay butonuna tıkla
+     */
+    @Step("Expand flight details for flight at index {flightIndex}")
+    public SearchResultsPage expandFlightDetails(int flightIndex) {
+        try {
+            logger.info("Expanding flight details for flight at index: " + flightIndex);
+            
+            By detailButtonLocator = By.cssSelector(".action-detail-btn");
+            java.util.List<WebElement> detailButtons = driver.findElements(detailButtonLocator);
+            
+            if (flightIndex >= detailButtons.size()) {
+                logger.error("Flight index " + flightIndex + " is out of bounds. Total flights: " + detailButtons.size());
+                return this;
+            }
+            
+            WebElement detailButton = detailButtons.get(flightIndex);
+            scrollToElement(By.cssSelector(".action-detail-btn"));
+            Thread.sleep(500);
+            
+            detailButton.click();
+            Thread.sleep(1000); // Detayların açılmasını bekle
+            
+            logger.info("Flight details expanded successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error expanding flight details: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Belirli bir index'teki uçuşun bilgilerini oku
+     */
+    @Step("Get flight info for flight at index {flightIndex}")
+    public FlightInfo getFlightInfo(int flightIndex) {
+        try {
+            logger.info("Getting flight info for index: " + flightIndex);
+            
+            By detailButtonLocator = By.cssSelector(".action-detail-btn");
+            java.util.List<WebElement> detailButtons = driver.findElements(detailButtonLocator);
+            
+            if (flightIndex >= detailButtons.size()) {
+                logger.error("Flight index out of bounds");
+                return null;
+            }
+            
+            WebElement detailButton = detailButtons.get(flightIndex);
+            WebElement flightCard = detailButton.findElement(By.xpath("./ancestor::div[contains(@class, 'flight-item')]"));
+            
+            // Basic bilgileri al
+            String airline = flightCard.findElements(By.cssSelector(".summary-marketing-airlines")).get(0).getText().trim();
+            String departureTime = flightCard.findElements(By.cssSelector("[data-testid='departureTime']")).get(0).getText().trim();
+            String arrivalTime = flightCard.findElements(By.cssSelector("[data-testid='arrivalTime']")).get(0).getText().trim();
+            String duration = flightCard.findElements(By.cssSelector("[data-testid='departureFlightTime']")).get(0).getText().trim();
+            String price = flightCard.findElements(By.cssSelector("[data-testid='flightInfoPrice']")).get(0).getAttribute("data-price");
+            
+            // Detayları aç ve segment bilgilerini al
+            expandFlightDetails(flightIndex);
+            Thread.sleep(1000);
+            
+            // Segment detaylarını al
+            WebElement flightDetailWrapper = flightCard.findElement(By.cssSelector(".flight-detail-wrapper"));
+            String flightNumber = flightDetailWrapper.findElement(By.cssSelector("[data-testid='flightNumber']")).getText().trim();
+            String flightClass = flightDetailWrapper.findElement(By.cssSelector("[data-testid='flightClass']")).getText().trim();
+            
+            FlightInfo info = new FlightInfo(airline, departureTime, arrivalTime, duration, price, flightNumber, flightClass);
+            logger.info("Flight info: " + airline + " - " + flightNumber + " (" + departureTime + " - " + arrivalTime + ")");
+            
+            return info;
+            
+        } catch (Exception e) {
+            logger.error("Error getting flight info: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * Belirli bir index'teki uçuşun "Seç" butonuna tıkla
+     */
+    @Step("Click select button for flight at index {flightIndex}")
+    public SearchResultsPage clickSelectFlight(int flightIndex) {
+        try {
+            logger.info("Clicking select button for flight at index: " + flightIndex);
+            
+            By selectButtonLocator = By.cssSelector(".action-select-btn");
+            java.util.List<WebElement> selectButtons = driver.findElements(selectButtonLocator);
+            
+            if (flightIndex >= selectButtons.size()) {
+                logger.error("Flight index out of bounds");
+                return this;
+            }
+            
+            WebElement selectButton = selectButtons.get(flightIndex);
+            scrollToElement(selectButtonLocator);
+            Thread.sleep(500);
+            
+            selectButton.click();
+            Thread.sleep(2000); // Paket seçim modalının açılmasını bekle
+            
+            logger.info("Select button clicked - Package selection modal should be visible");
+            
+        } catch (Exception e) {
+            logger.error("Error clicking select button: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Gidiş uçuşu için paket seç (BASIC, FLEX, PREMIUM)
+     */
+    @Step("Select departure package: {packageType}")
+    public SearchResultsPage selectDeparturePackage(String packageType) {
+        try {
+            logger.info("Selecting departure package: " + packageType);
+            
+            String testId = "departureProviderPackageItem" + packageType.toUpperCase();
+            By packageLocator = By.cssSelector("[data-testid='" + testId + "']");
+            
+            Thread.sleep(1000); // Modal'ın tam yüklenmesini bekle
+            
+            WebElement packageElement = driver.findElement(packageLocator);
+            packageElement.click();
+            Thread.sleep(500);
+            
+            logger.info("Departure package selected: " + packageType);
+            
+        } catch (Exception e) {
+            logger.error("Error selecting departure package: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Dönüş uçuşu için paket seç (BASIC, FLEX, PREMIUM)
+     */
+    @Step("Select return package: {packageType}")
+    public SearchResultsPage selectReturnPackage(String packageType) {
+        try {
+            logger.info("Selecting return package: " + packageType);
+            
+            String testId = "returnProviderPackageItem" + packageType.toUpperCase();
+            By packageLocator = By.cssSelector("[data-testid='" + testId + "']");
+            
+            Thread.sleep(1000); // Modal'ın tam yüklenmesini bekle
+            
+            WebElement packageElement = driver.findElement(packageLocator);
+            packageElement.click();
+            Thread.sleep(500);
+            
+            logger.info("Return package selected: " + packageType);
+            
+        } catch (Exception e) {
+            logger.error("Error selecting return package: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Paket seçimini onayla ve devam et
+     */
+    @Step("Confirm package selection")
+    public SearchResultsPage confirmPackageSelection() {
+        try {
+            logger.info("Confirming package selection");
+            
+            By confirmButtonLocator = By.cssSelector("[data-testid='providerSelectBtn']");
+            Thread.sleep(1000);
+            
+            WebElement confirmButton = driver.findElement(confirmButtonLocator);
+            confirmButton.click();
+            Thread.sleep(3000); // Sayfanın yüklenmesini bekle
+            
+            logger.info("Package selection confirmed - Navigating to next page");
+            
+        } catch (Exception e) {
+            logger.error("Error confirming package selection: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Uçuş bilgisi için inner class
+     */
+    public static class FlightInfo {
+        private String airline;
+        private String departureTime;
+        private String arrivalTime;
+        private String duration;
+        private String price;
+        private String flightNumber;
+        private String flightClass;
+        
+        public FlightInfo(String airline, String departureTime, String arrivalTime, 
+                         String duration, String price, String flightNumber, String flightClass) {
+            this.airline = airline;
+            this.departureTime = departureTime;
+            this.arrivalTime = arrivalTime;
+            this.duration = duration;
+            this.price = price;
+            this.flightNumber = flightNumber;
+            this.flightClass = flightClass;
+        }
+        
+        public String getAirline() { return airline; }
+        public String getDepartureTime() { return departureTime; }
+        public String getArrivalTime() { return arrivalTime; }
+        public String getDuration() { return duration; }
+        public String getPrice() { return price; }
+        public String getFlightNumber() { return flightNumber; }
+        public String getFlightClass() { return flightClass; }
+    }
 }
