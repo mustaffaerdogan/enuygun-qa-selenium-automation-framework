@@ -23,6 +23,17 @@ public class SearchResultsPage extends BasePage {
     private final By departureTimeSliderLeft = By.cssSelector("[data-testid='departureDepartureTimeSlider'] .rc-slider-handle.rc-slider-handle-1");
     private final By departureTimeSliderRight = By.cssSelector("[data-testid='departureDepartureTimeSlider'] .rc-slider-handle.rc-slider-handle-2");
     
+    // Locators - Havayolları filtresi
+    private final By airlineFilterCard = By.cssSelector(".ctx-filter-airline.card-header");
+    private final By airlineExpandIcon = By.cssSelector(".ctx-filter-airline.ei-expand-more");
+    private final By airlineCollapseIcon = By.cssSelector(".ctx-filter-airline.ei-expand-less");
+    private final By turkishAirlinesCheckbox = By.id("TKairlines");
+    private final By turkishAirlinesLabel = By.cssSelector("label[for='TKairlines']");
+    
+    // Locators - Fiyat sıralama
+    private final By sortButtonCheapest = By.cssSelector("[data-testid='sortButtons0'], .search__filter_sort-PRICE_ASC");
+    private final By flightPrices = By.cssSelector("[data-testid='flightInfoPrice']");
+    
     // Flight results locators
     private final By flightCards = By.cssSelector(".flight-list-body .body-row, .flight-card");
     private final By flightDepartureTimes = By.cssSelector("[data-testid='departureTime']");
@@ -484,6 +495,286 @@ public class SearchResultsPage extends BasePage {
             
         } catch (Exception e) {
             logger.error("Error verifying flight destinations: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Havayolları filtresini aç
+     */
+    @Step("Expand airline filter")
+    public SearchResultsPage expandAirlineFilter() {
+        try {
+            logger.info("Checking airline filter status");
+            
+            // Filtre kartına scroll et
+            scrollToElement(airlineFilterCard);
+            Thread.sleep(500);
+            
+            // Expand icon var mı kontrol et (kapalı mı?)
+            boolean isClosed = driver.findElements(airlineExpandIcon).size() > 0;
+            
+            if (isClosed) {
+                logger.info("Airline filter is closed (ei-expand-more found), clicking to expand");
+                click(airlineExpandIcon); // Icon'a tıkla
+                Thread.sleep(1000);
+                logger.info("Airline filter expanded successfully");
+            } else {
+                logger.info("Airline filter is already expanded (ei-expand-less)");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error expanding airline filter: " + e.getMessage());
+        }
+        return this;
+    }
+    
+    /**
+     * Türk Hava Yolları filtresini seç
+     */
+    @Step("Select Turkish Airlines filter")
+    public SearchResultsPage selectTurkishAirlines() {
+        try {
+            logger.info("Selecting Turkish Airlines filter");
+            
+            // Checkbox zaten seçili mi kontrol et
+            WebElement checkbox = driver.findElement(turkishAirlinesCheckbox);
+            boolean isChecked = checkbox.isSelected();
+            
+            if (isChecked) {
+                logger.info("Turkish Airlines is already selected");
+                return this;
+            }
+            
+            // Label'a tıkla (checkbox'ı seçmek için)
+            logger.info("Clicking Turkish Airlines checkbox");
+            click(turkishAirlinesLabel);
+            Thread.sleep(1000); // Filtrenin uygulanması için bekle
+            
+            // Tekrar kontrol et
+            boolean nowChecked = driver.findElement(turkishAirlinesCheckbox).isSelected();
+            logger.info("Turkish Airlines checkbox selected: " + nowChecked);
+            
+            if (nowChecked) {
+                logger.info("Turkish Airlines filter selected successfully");
+            } else {
+                logger.warn("Turkish Airlines checkbox may not be selected properly");
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error selecting Turkish Airlines: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Havayolu filtrelerin uygulanmasını bekle ve sonuçların güncellenmesini kontrol et
+     */
+    @Step("Wait for airline filters to apply")
+    public SearchResultsPage waitForAirlineFiltersToApply() {
+        try {
+            logger.info("Waiting for airline filters to apply and results to update...");
+            
+            Thread.sleep(2000); // Filtrelerin uygulanması
+            Thread.sleep(3000); // Sonuçların yenilenmesi
+            
+            logger.info("Airline filters applied, results should be updated");
+            
+            // Kaç uçuş kaldığını kontrol et
+            int flightCount = driver.findElements(By.cssSelector(".flight-item")).size();
+            logger.info("Flight count after airline filtering: " + flightCount);
+            
+        } catch (Exception e) {
+            logger.error("Error waiting for airline filters: " + e.getMessage());
+        }
+        return this;
+    }
+    
+    /**
+     * Tüm listelenen uçuşların Türk Hava Yolları olduğunu doğrula
+     * @return Tüm uçuşlar Türk Hava Yolları mı?
+     */
+    @Step("Verify all flights are Turkish Airlines")
+    public boolean verifyAllFlightsAreTurkishAirlines() {
+        try {
+            logger.info("Verifying all listed flights are Turkish Airlines");
+            
+            // Tüm havayolu elementlerini bul
+            By turkishAirlinesElements = By.cssSelector("[data-testid='Türk Hava Yolları']");
+            java.util.List<WebElement> airlines = driver.findElements(turkishAirlinesElements);
+            
+            if (airlines.isEmpty()) {
+                logger.warn("No airline information found in flight list!");
+                return false;
+            }
+            
+            logger.info("Found " + airlines.size() + " airline elements to verify");
+            
+            int turkishAirlinesCount = 0;
+            int otherAirlinesCount = 0;
+            
+            // Tüm uçuş kartlarını kontrol et
+            java.util.List<WebElement> flightItems = driver.findElements(By.cssSelector(".flight-item"));
+            logger.info("Total flight items: " + flightItems.size());
+            
+            for (int i = 0; i < flightItems.size(); i++) {
+                try {
+                    WebElement flight = flightItems.get(i);
+                    
+                    // Bu uçuşta Türk Hava Yolları elementi var mı?
+                    java.util.List<WebElement> tkElements = flight.findElements(turkishAirlinesElements);
+                    
+                    if (tkElements.size() > 0) {
+                        turkishAirlinesCount++;
+                        String airlineName = tkElements.get(0).getText().trim();
+                        logger.info("✓ Flight " + (i + 1) + ": " + airlineName + " - MATCH");
+                    } else {
+                        otherAirlinesCount++;
+                        // Hangi havayolu olduğunu bul
+                        java.util.List<WebElement> otherAirlines = flight.findElements(By.cssSelector(".summary-marketing-airlines"));
+                        String airlineName = otherAirlines.isEmpty() ? "Unknown" : otherAirlines.get(0).getText().trim();
+                        logger.warn("✗ Flight " + (i + 1) + ": " + airlineName + " - NOT Turkish Airlines");
+                    }
+                    
+                } catch (Exception e) {
+                    logger.error("Error checking flight " + (i + 1) + ": " + e.getMessage());
+                    otherAirlinesCount++;
+                }
+            }
+            
+            logger.info("=== TURKISH AIRLINES FILTER VERIFICATION ===");
+            logger.info("Turkish Airlines flights: " + turkishAirlinesCount);
+            logger.info("Other airlines: " + otherAirlinesCount);
+            logger.info("Total flights: " + flightItems.size());
+            
+            if (flightItems.size() > 0) {
+                logger.info("Success rate: " + (turkishAirlinesCount * 100 / flightItems.size()) + "%");
+            }
+            
+            return otherAirlinesCount == 0 && turkishAirlinesCount > 0;
+            
+        } catch (Exception e) {
+            logger.error("Error verifying Turkish Airlines filter: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * "En ucuz" butonuna tıklayarak fiyata göre sırala (ucuzdan pahalıya)
+     */
+    @Step("Sort flights by price (cheapest first)")
+    public SearchResultsPage sortByPriceCheapestFirst() {
+        try {
+            logger.info("Sorting flights by price (cheapest first)");
+            
+            // En ucuz butonunu bul ve tıkla
+            WebElement sortButton = driver.findElement(sortButtonCheapest);
+            
+            // Zaten aktif mi kontrol et
+            String buttonClass = sortButton.getAttribute("class");
+            if (buttonClass != null && buttonClass.contains("active")) {
+                logger.info("Price sort (cheapest) is already active");
+                return this;
+            }
+            
+            // Butona tıkla
+            logger.info("Clicking 'En ucuz' (cheapest) sort button");
+            click(sortButtonCheapest);
+            
+            // Sıralama uygulanması için bekle
+            Thread.sleep(2000);
+            logger.info("Price sorting applied - waiting for results to update");
+            Thread.sleep(2000);
+            
+            logger.info("Flights sorted by price (cheapest first) successfully");
+            
+        } catch (Exception e) {
+            logger.error("Error sorting by price: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return this;
+    }
+    
+    /**
+     * Fiyatların ucuzdan pahalıya doğru sıralandığını doğrula
+     * @return Fiyatlar doğru sıralı mı?
+     */
+    @Step("Verify flights are sorted by price (cheapest to most expensive)")
+    public boolean verifyPricesSortedCheapestFirst() {
+        try {
+            logger.info("Verifying flights are sorted by price (cheapest to most expensive)");
+            
+            // Tüm fiyatları al
+            java.util.List<WebElement> priceElements = driver.findElements(flightPrices);
+            
+            if (priceElements.isEmpty()) {
+                logger.warn("No flight prices found!");
+                return false;
+            }
+            
+            logger.info("Found " + priceElements.size() + " flight prices to verify");
+            
+            java.util.List<Double> prices = new java.util.ArrayList<>();
+            
+            // Her fiyatı parse et
+            for (int i = 0; i < priceElements.size(); i++) {
+                try {
+                    WebElement priceElement = priceElements.get(i);
+                    String priceStr = priceElement.getAttribute("data-price");
+                    
+                    if (priceStr != null && !priceStr.isEmpty()) {
+                        double price = Double.parseDouble(priceStr);
+                        prices.add(price);
+                        logger.info("Flight " + (i + 1) + ": " + price + " TL");
+                    }
+                    
+                } catch (Exception e) {
+                    logger.error("Error parsing price for flight " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+            
+            if (prices.isEmpty()) {
+                logger.warn("No valid prices found to verify!");
+                return false;
+            }
+            
+            // Sıralamayı kontrol et (her fiyat bir öncekinden büyük veya eşit olmalı)
+            boolean isSorted = true;
+            int wrongOrderCount = 0;
+            
+            for (int i = 1; i < prices.size(); i++) {
+                double previousPrice = prices.get(i - 1);
+                double currentPrice = prices.get(i);
+                
+                if (currentPrice < previousPrice) {
+                    isSorted = false;
+                    wrongOrderCount++;
+                    logger.warn("✗ Wrong order at position " + (i + 1) + ": " + 
+                               previousPrice + " TL > " + currentPrice + " TL (should be <=)");
+                } else {
+                    logger.info("✓ Correct order at position " + (i + 1) + ": " + 
+                               previousPrice + " TL <= " + currentPrice + " TL");
+                }
+            }
+            
+            logger.info("=== PRICE SORTING VERIFICATION ===");
+            logger.info("Total flights checked: " + prices.size());
+            logger.info("Correctly ordered: " + (prices.size() - wrongOrderCount - 1));
+            logger.info("Wrong order: " + wrongOrderCount);
+            logger.info("Is sorted correctly: " + isSorted);
+            
+            if (prices.size() > 1) {
+                logger.info("Cheapest: " + prices.get(0) + " TL");
+                logger.info("Most expensive: " + prices.get(prices.size() - 1) + " TL");
+            }
+            
+            return isSorted;
+            
+        } catch (Exception e) {
+            logger.error("Error verifying price sorting: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
