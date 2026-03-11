@@ -2,8 +2,8 @@
 
 Enuygun.com için geliştirilmiş **production-ready** Selenium WebDriver tabanlı test otomasyon framework'ü. Page Object Model (POM) design pattern kullanılarak geliştirilmiştir.
 
-**Proje Durumu:** 3/4 test case tamamlandı (%75 coverage)  
-**Öne Çıkan Özellikler:** Data Analysis, CSV Export, Executive HTML Reports  
+**Proje Durumu:** 4/4 test case tamamlandı (kritik akışların tamamı kapsanıyor)  
+**Öne Çıkan Özellikler:** Critical Path E2E, Data Analysis, CSV Export, Executive HTML Reports  
 **Son Güncelleme:** Mart 2026
 
 ---
@@ -233,7 +233,8 @@ qa-selenium-automation-framework/
 │   │   │       │   └── RetryListener.java
 │   │   │       ├── pages/             # Page Objects
 │   │   │       │   ├── HomePage.java            # Enuygun.com ana sayfa
-│   │   │       │   └── SearchResultsPage.java   # Arama sonuçları sayfası
+│   │   │       │   ├── SearchResultsPage.java   # Arama sonuçları sayfası
+│   │   │       │   └── ReservationPage.java     # Rezervasyon / detay sayfası
 │   │   │       ├── exceptions/        # Custom exceptions
 │   │   │       │   ├── FrameworkException.java
 │   │   │       │   ├── ConfigurationException.java
@@ -553,17 +554,18 @@ Log dosyaları: `target/logs/`
 
 ### Mevcut Test Case'leri Geliştirme
 
-4 test case'in boş iskeletleri hazır durumda. Her test case için adımları eklemek için:
+Mevcut 4 test case tamamlanmış durumda. Yeni senaryolar eklemek veya mevcutları genişletmek için:
 
 1. **Page Object'leri genişletin** (`src/main/java/com/mustafa/pages/`)
-   - `HomePage.java` - Ana sayfa elemanları
-   - Yeni page'ler ekleyin (SearchResultsPage, FlightDetailsPage, vb.)
+   - `HomePage.java` - Ana sayfa elemanları ve arama akışı
+   - `SearchResultsPage.java` - Uçuş listeleme, filtreleme, sıralama, veri çıkarma
+   - `ReservationPage.java` - Rezervasyon detay ve doğrulama ekranı
 
-2. **Test adımlarını ekleyin** (`src/test/java/com/mustafa/tests/`)
-   - `FlightSearchTest.java` - Uçuş arama ve filtreleme
-   - `PriceSortingTest.java` - Fiyat sıralama
-   - `CriticalPathTest.java` - E2E akış
-   - `DataExtractionTest.java` - Veri çıkarma
+2. **Yeni test adımları ekleyin veya varyantlar oluşturun** (`src/test/java/com/mustafa/tests/`)
+   - `FlightSearchTest.java` - Uçuş arama ve zaman filtresi
+   - `PriceSortingTest.java` - Havayolu filtresi ve fiyat sıralama
+   - `CriticalPathTest.java` - Gidiş–dönüş kritik yol (search → select → reservation)
+   - `DataExtractionTest.java` - Uçuş verisi çıkarma, CSV ve analiz raporu
 
 ### Yeni Page Object Oluşturma
 
