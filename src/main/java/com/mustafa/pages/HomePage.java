@@ -26,6 +26,11 @@ public class HomePage extends BasePage {
     private final By departureMonthForwardButton = By.cssSelector("[data-testid='enuygun-homepage-flight-departureDate-month-forward-button']");
     private final By returnMonthForwardButton = By.cssSelector("[data-testid='enuygun-homepage-flight-returnDate-month-forward-button']");
     
+    // Hotel Checkbox Locators
+    private final By hotelCheckboxCheckedLabel = By.cssSelector("[data-testid='flight-oneWayCheckbox-checked-label']");
+    private final By hotelCheckboxCheckedSpan = By.cssSelector("[data-testid='flight-oneWayCheckbox-checked-span']");
+    private final By hotelCheckboxUncheckedSpan = By.cssSelector("[data-testid='flight-oneWayCheckbox-unchecked-span']");
+    
     // Search Button
     private final By searchButton = By.cssSelector("[data-testid='enuygun-homepage-flight-submitButton']");
     
@@ -52,7 +57,7 @@ public class HomePage extends BasePage {
             if (isElementVisible(cookieAcceptButton)) {
                 click(cookieAcceptButton);
                 logger.info("Cookies accepted via OneTrust dialog");
-                Thread.sleep(1000); // Cookie dialog'un kapanması için kısa bir bekleme
+                Thread.sleep(100); // 3x daha hızlı // Cookie dialog'un kapanması için kısa bir bekleme
             }
         } catch (Exception e) {
             logger.info("Cookie dialog not found or already accepted");
@@ -68,7 +73,7 @@ public class HomePage extends BasePage {
         try {
             click(roundTripRadioButton);
             logger.info("Round trip option selected");
-            Thread.sleep(500);
+            Thread.sleep(100); // 3x daha hızlı
         } catch (Exception e) {
             logger.warn("Could not click round trip button, might be already selected: " + e.getMessage());
         }
@@ -82,15 +87,15 @@ public class HomePage extends BasePage {
     public HomePage enterOrigin(String origin) {
         try {
             click(originInput);
-            Thread.sleep(300);
+            Thread.sleep(100); // 3x daha hızlı
             type(originInput, origin);
             logger.info("Origin entered: " + origin);
-            Thread.sleep(1000);
+            Thread.sleep(200); // 3x daha hızlı
             
             waitForElement(originFirstOption);
             click(originFirstOption);
             logger.info("First origin option selected");
-            Thread.sleep(500);
+            Thread.sleep(100); // 3x daha hızlı
         } catch (Exception e) {
             logger.error("Error entering origin: " + e.getMessage());
         }
@@ -104,15 +109,15 @@ public class HomePage extends BasePage {
     public HomePage enterDestination(String destination) {
         try {
             click(destinationInput);
-            Thread.sleep(300);
+            Thread.sleep(100); // 3x daha hızlı
             type(destinationInput, destination);
             logger.info("Destination entered: " + destination);
-            Thread.sleep(1000);
+            Thread.sleep(200); // 3x daha hızlı
             
             waitForElement(destinationFirstOption);
             click(destinationFirstOption);
             logger.info("First destination option selected");
-            Thread.sleep(500);
+            Thread.sleep(100); // 3x daha hızlı
         } catch (Exception e) {
             logger.error("Error entering destination: " + e.getMessage());
         }
@@ -143,13 +148,13 @@ public class HomePage extends BasePage {
             
             // Tarih input'una tıkla - takvim açılsın
             click(departureDateInput);
-            Thread.sleep(800); // Takvimin açılması için kısa bekleme
+            Thread.sleep(100); // 3x daha hızlı: takvim açılması
             
             // Takvimde günü seç - spesifik ay ve gün ile (gidiş için forward button kullan)
             selectDateInCalendarByMonthAndDay(year, month, day, departureMonthForwardButton);
             
             logger.info("Departure date selected: " + dateString);
-            Thread.sleep(300); // Kısa stabilizasyon
+            Thread.sleep(100); // 3x daha hızlı // Kısa stabilizasyon
         } catch (Exception e) {
             logger.error("Error selecting departure date: " + e.getMessage());
         }
@@ -174,13 +179,13 @@ public class HomePage extends BasePage {
             String year = dateParts[2];
             
             // Gidiş tarihi seçildikten sonra kısa bir bekleme
-            Thread.sleep(1000);
+            Thread.sleep(100); // 3x daha hızlı
             
             // Dönüş tarihi input'a tıkla - dönüş takvimi açılır
             // NOT: returnDateInput locator'ı: enuygun-homepage-flight-returnDate-datepicker
             logger.info("Clicking return date picker");
             click(returnDateInput);
-            Thread.sleep(1000); // Takvimin açılması için bekle
+            Thread.sleep(100); // 3x daha hızlı // Takvimin açılması için bekle
             
             logger.info("Return date calendar opened");
             
@@ -189,7 +194,7 @@ public class HomePage extends BasePage {
             selectDateInCalendarByMonthAndDay(year, month, day, returnMonthForwardButton);
             
             logger.info("Return date selected: " + dateString);
-            Thread.sleep(300);
+            Thread.sleep(100); // 3x daha hızlı
         } catch (Exception e) {
             logger.error("Error selecting return date: " + e.getMessage());
         }
@@ -217,25 +222,24 @@ public class HomePage extends BasePage {
             int attempts = 0;
             
             while (attempts < maxAttempts) {
-                // Hedef ay container'ı var mı kontrol et
-                By monthContainer = By.id(monthContainerId);
-                
-                if (isElementPresent(monthContainer)) {
+                // Hedef ay container'ı var mı kontrol et (wait yok - çok hızlı)
+                if (driver.findElements(By.id(monthContainerId)).size() > 0) {
                     logger.info("Target month found: " + monthContainerId);
                     break;
                 }
                 
-                // Hedef ay yoksa, ileri butonuna tıkla
-                if (isElementVisible(forwardButton)) {
-                    click(forwardButton);
-                    logger.info("Clicked forward button, attempt: " + (attempts + 1));
-                    Thread.sleep(300); // Hızlı kaydırma için kısa bekleme
+                // Hedef ay yoksa, ileri butonuna hızla tıkla
+                try {
+                    driver.findElement(forwardButton).click(); // Direkt click - logging yok
+                    Thread.sleep(10); // Minimum bekleme - takvim DOM'u güncellenmeli
                     attempts++;
-                } else {
-                    logger.warn("Forward button not visible");
+                } catch (Exception e) {
+                    logger.warn("Forward button not clickable: " + e.getMessage());
                     break;
                 }
             }
+            
+            logger.info("Reached target month after " + attempts + " forward clicks");
             
             if (attempts >= maxAttempts) {
                 logger.error("Could not find target month after " + maxAttempts + " attempts");
@@ -274,6 +278,34 @@ public class HomePage extends BasePage {
     }
     
     /**
+     * Otel checkbox'ının işaretli olmadığından emin ol
+     * "Bu tarihler için otelleri listele" işaretini kaldır
+     */
+    @Step("Ensure hotel checkbox is unchecked")
+    public HomePage ensureHotelCheckboxUnchecked() {
+        try {
+            logger.info("Checking hotel checkbox status");
+            
+            // Checked span var mı kontrol et (işaretli mi?)
+            boolean isChecked = driver.findElements(hotelCheckboxCheckedSpan).size() > 0;
+            
+            if (isChecked) {
+                logger.info("Hotel checkbox is checked, clicking to uncheck");
+                // Checked label'a tıklayarak işareti kaldır
+                click(hotelCheckboxCheckedLabel);
+                Thread.sleep(200);
+                logger.info("Hotel checkbox unchecked successfully");
+            } else {
+                logger.info("Hotel checkbox is already unchecked");
+            }
+            
+        } catch (Exception e) {
+            logger.warn("Could not check/uncheck hotel checkbox: " + e.getMessage());
+        }
+        return this;
+    }
+    
+    /**
      * Ucuz Bilet Bul butonuna tıkla - Uçuş araması yap
      */
     @Step("Click search button to find flights")
@@ -288,7 +320,7 @@ public class HomePage extends BasePage {
             logger.info("Search button clicked - Flight search initiated");
             
             // Sonuç sayfasının yüklenmesi için daha uzun bekleme
-            Thread.sleep(5000); // 5 saniye - sonuç sayfası yavaş yüklenebilir
+            Thread.sleep(3000); // Sonuç sayfası yüklensin
             
             logger.info("Waiting for search results page to load");
             

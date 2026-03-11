@@ -3,6 +3,7 @@ package com.mustafa.tests;
 import com.mustafa.base.BaseTest;
 import com.mustafa.config.ConfigReader;
 import com.mustafa.pages.HomePage;
+import com.mustafa.pages.SearchResultsPage;
 import io.qameta.allure.*;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -19,7 +20,7 @@ public class FlightSearchTest extends BaseTest {
     @Severity(SeverityLevel.BLOCKER)
     @Description("Test Description: Temel uçuş arama ve zaman filtresi testi")
     @Story("As a user, I should be able to search for flights and apply time filters")
-    public void testBasicFlightSearchAndTimeFilter() {
+    public void testBasicFlightSearchAndTimeFilter() throws InterruptedException {
         logger.info("TEST: Case 1 - Basic Flight Search and Time Filter Started");
         
         // Arrange - Get test data from config
@@ -62,30 +63,53 @@ public class FlightSearchTest extends BaseTest {
         
         logger.info("TEST: Departure and return dates selected successfully");
         
+        // Ensure hotel checkbox is unchecked (otel listesi istemiyoruz)
+        homePage.ensureHotelCheckboxUnchecked();
+        
+        logger.info("TEST: Hotel checkbox verified as unchecked");
+        
         // Click search button to find flights
         homePage.clickSearchButton();
         
         logger.info("TEST: Search button clicked - Navigating to results page");
         
-        // Verify navigation to search results page
-        String currentUrl = driver.getCurrentUrl();
-        logger.info("Current URL after search: " + currentUrl);
+        // Search Results Page'e geç
+        SearchResultsPage resultsPage = new SearchResultsPage(driver);
         
-        // URL kontrolünü daha esnek yap - Enuygun sonuç sayfası formatları
-        // Örnek: /ucak-bileti/arama/istanbul-ankara...
-        boolean isResultsPage = currentUrl.contains("/ucak-bileti/") || 
-                                currentUrl.contains("/arama/") ||
-                                currentUrl.contains("ucuz-ucak-bileti") || 
-                                currentUrl.contains("flight") ||
-                                currentUrl.contains("ucus");
+        // Verify results page is loaded (URL ve element kontrolü içerir)
+        Assert.assertTrue(resultsPage.isResultsPageLoaded(),
+            "Search results page should be loaded with correct URL");
         
-        Assert.assertTrue(isResultsPage, 
-            "Should navigate to flight results page. Current URL: " + currentUrl);
+        logger.info("TEST: Search results page loaded successfully");
         
-        logger.info("TEST: Successfully navigated to search results page");
-        logger.info("Current URL: " + currentUrl);
+        // Apply time filter: 10:00 - 18:00
+        logger.info("TEST: Applying departure time filter (10:00 - 18:00)");
         
-        // TODO: Time filter steps will be added after SearchResultsPage is created
+        resultsPage.expandDepartureTimeFilter()
+                   .setDepartureTimeFilter(10, 18)
+                   .waitForFiltersToApply();
+        
+        logger.info("TEST: Departure time filter applied successfully");
+        
+        // Verify filtered results - TÜM uçuşların kalkış saatlerini kontrol et
+        logger.info("TEST: Verifying ALL flights have departure times between 10:00 - 18:00");
+        
+        boolean allFlightsInRange = resultsPage.verifyDepartureTimesInRange(10, 18);
+        
+        Assert.assertTrue(allFlightsInRange, 
+            "All flights should have departure times between 10:00 - 18:00");
+        
+        logger.info("TEST: All flights verified - time filter working correctly");
+        
+        // Verify flight destinations match config (origin and destination cities)
+        logger.info("TEST: Verifying flight destinations match config");
+        
+        boolean destinationsMatch = resultsPage.verifyFlightDestinations(origin, destination);
+        
+        Assert.assertTrue(destinationsMatch,
+            "All flights should match origin: " + origin + " and destination: " + destination);
+        
+        logger.info("TEST: All flight destinations verified successfully");
         
         logger.info("TEST: Case 1 - Basic Flight Search and Time Filter Completed");
     }
